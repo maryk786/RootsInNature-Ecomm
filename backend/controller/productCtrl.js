@@ -1,43 +1,77 @@
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
-const slugify = require("slugify");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
 const createProduct = asyncHandler(async (req, res) => {
   try {
-    if (req.body.title) {
-      req.body.slug = slugify(req.body.title);
-    }
     const newProduct = await Product.create(req.body);
     res.json(newProduct);
-  } catch (error) {
-    throw new Error("Error is :", error);
-  }
-});
-
-const updateProduct = asyncHandler(async (req, res) => {
-  const id = req.params;
-  validateMongoDbId(id);
-  try {
-    if (req.body.title) {
-      req.body.slug = slugify(req.body.title);
-    }
-    const updateProduct = await Product.findOneAndUpdate({ id }, req.body, {
-      new: true,
-    });
-    res.json(updateProduct);
   } catch (error) {
     throw new Error(error);
   }
 });
+const relatedProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // console.log(productId)
+
+  try {
+    // Fetch the current product to get its category
+    const product = await Product.findById(id);
+
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+
+    // Log the current product and its category
+    // console.log("Current product:", product);
+    // console.log("Product type:", product.type);
+
+    const relatedProducts = await Product.aggregate([
+      { $match: { type: product.type, _id: { $ne: id } } }, // Match related products, excluding the current product
+      { $sample: { size: 4 } }, // Randomly select 4 related products
+    ]);
+    // Log the related products found
+    // console.log("Related products:", relatedProducts);
+
+    res.json(relatedProducts);
+  } catch (error) {
+    res.status(500);
+    throw new Error(error.message);
+  }
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+
+  // Log the incoming request body
+  console.log("Request Body:", req.body);
+
+  // Ensure category is an array of strings
+  if (req.body.category && !Array.isArray(req.body.category)) {
+    return res
+      .status(400)
+      .json({ error: "Category must be an array of strings." });
+  }
+
+  try {
+    const product = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.json(product);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 const deleteProduct = asyncHandler(async (req, res) => {
-  console.log(req.params);
-  const id = req.params.id; // Access the value of the 'id' parameter
+  const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const deletedProduct = await Product.findOneAndDelete({ _id: id }); // Use _id to find the product by its ID
+    const deletedProduct = await Product.findOneAndDelete(id); // Use _id to find the product by its ID
     // res.json(deletedProduct);
     res.send("deleted successfull");
   } catch (error) {
@@ -57,16 +91,14 @@ const getaProduct = asyncHandler(async (req, res) => {
   }
 });
 
-
-const getAllProducts = async (req, res) => {
+const getAllProducts = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products);
+    const product = await Product.find();
+    res.json(product);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    throw new Error(error);
   }
-};
+});
 const getProductbyPage = asyncHandler(async (req, res) => {
   try {
     // Extract pagination parameters
@@ -175,6 +207,7 @@ const addToWishlist = asyncHandler(async (req, res) => {
 module.exports = {
   createProduct,
   getaProduct,
+  relatedProduct,
   getAllProducts,
   getProductbyPage,
   updateProduct,

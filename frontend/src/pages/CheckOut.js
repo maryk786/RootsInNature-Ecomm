@@ -54,7 +54,6 @@ const Checkout = () => {
       postcode: "",
       email: user ? user.email : "",
       mobile: user ? user.mobile : "",
-      checkbox: false,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -262,7 +261,7 @@ const Checkout = () => {
                       >
                         <div className="flex gap-3">
                           <img
-                            src={item.productId?.images}
+                            src={item.productId?.imageList?.[0]}
                             className="w-14 h-14"
                             alt=""
                           />

@@ -60,7 +60,7 @@ const Enquiries = () => {
   const enqState = useSelector((state) => state.enquiry.enquiries);
   const data1 = enqState.map((enquiry, index) => ({
     key: index + 1,
-    name: enquiry.name,
+    name: enquiry.firstname,
     email: enquiry.email,
     mobile: enquiry.mobile,
     status: (
@@ -112,7 +112,7 @@ const Enquiries = () => {
 
   return (
     <div>
-      <h3 className="mb-4 title">Enquiries</h3>
+      <h3 className="mb-4 title">Inquiries</h3>
       <div>
         <Table columns={columns} dataSource={data1} />
       </div>

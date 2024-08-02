@@ -3,15 +3,22 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import DiscountBar from "./DiscountBar";
 
 const Layout = () => {
   const location = useLocation();
-  const noFooterPaths = ["/login", "/register","/forget-password","/reset-password"];
+  const noFooterPaths = [
+    "/login",
+    "/register",
+    "/forget-password",
+    "/reset-password",
+  ];
 
   return (
     <>
+      <DiscountBar />
       <Header />
       <Navbar />
       <main>
@@ -19,16 +26,17 @@ const Layout = () => {
       </main>
       {!noFooterPaths.includes(location.pathname) && <Footer />}
       <ToastContainer
-      position="top-right"
-      autoClose={400}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      theme="light" />
+        position="top-right"
+        autoClose={400}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 };

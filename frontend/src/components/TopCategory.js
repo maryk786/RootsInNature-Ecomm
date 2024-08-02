@@ -10,17 +10,17 @@ import { IoIosArrowRoundForward } from "react-icons/io";
 
 const TopCategories = () => {
   const images = [
-    { name: "Flowers", image: flowers, path: "/product-category/flowers" },
-    { name: "Shrubs", image: shrubs, path: "/product-category/shrubs" },
+    { name: "Flowers", image: flowers, path: "/product-categories/flowers" },
+    { name: "Shrubs", image: shrubs, path: "/product-categories/shrubs" },
     {
       name: "Succulent",
       image: succulent,
-      path: "/product-category/succulent",
+      path: "/product-categories/succulents",
     },
     {
       name: "Indoor Plants",
       image: indoorPlants,
-      path: "/product-category/indoorPlants",
+      path: "/product-categories/indoor-Plants",
     },
   ];
   return (
@@ -28,10 +28,10 @@ const TopCategories = () => {
       <div className="container mt-14 mb-8">
         <div className="row">
           <div className="flex flex-col justify-center items-center">
-            <h1 className=" text-center mb-5 font-bold text-3xl">
+            <h1 className="top-category-head text-center mb-5 font-bold text-3xl">
               Explore Our Popular Categories
             </h1>
-            <div className="top-category grid grid-cols-4">
+            <div className="top-category grid grid-cols-4 ">
               {images.map((item, index) => (
                 <Link key={index} to={item.path}>
                   <CustomCard
@@ -44,11 +44,11 @@ const TopCategories = () => {
             </div>
             <Link
               to={"/shop"}
-              className="flex justify-center my-5 hover:no-underline"
+              className="flex justify-center my-5 hover:no-underline items-center"
             >
-              <button className="bg-[#144402] flex py-3">
+              <button className="top-category-button font-semibold bg-[#144402] flex py-3">
                 Explore All Plants &nbsp;
-                <span className=" flex items-center justify-center text-center text-2xl">
+                <span className=" text-center text-2xl">
                   <IoIosArrowRoundForward />
                 </span>
               </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import {
   AiOutlineDashboard,
@@ -9,30 +9,51 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import { FaClipboardList} from "react-icons/fa";
+import { FaClipboardList } from "react-icons/fa";
 import { BiCategoryAlt } from "react-icons/bi";
 import { Layout, Menu, theme } from "antd";
 import { useNavigate } from "react-router-dom";
-import logo from "../logo.png"
+import { useDispatch, useSelector } from "react-redux";
+import { getUsers } from "../features/cutomers/customerSlice";
+import logo from "../logo.png";
+
 const { Header, Sider, Content } = Layout;
+
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getUsers());
+  }, [dispatch]);
+
+  const Adminstate = useSelector((state) => state.auth?.user);
+
   return (
     <Layout /* onContextMenu={(e) => e.preventDefault()} */>
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="">
-          <img src={logo} width={180} height={90} className="" alt="" />
+        <div className="logo-container" style={{ textAlign: "center", padding: "16px" }}>
+          <img
+            src={logo}
+            alt="Logo"
+            style={{
+              width: collapsed ? "50px" : "180px",
+              height: "auto",
+              transition: "width 0.3s"
+            }}
+          />
         </div>
         <Menu
           theme="dark"
           mode="inline"
           defaultSelectedKeys={[""]}
           onClick={({ key }) => {
-            if (key == "signout") {
+            if (key === "signout") {
+              // Handle signout
             } else {
               navigate(key);
             }
@@ -57,7 +78,7 @@ const MainLayout = () => {
                   key: "list-product",
                   icon: <AiOutlineShoppingCart className="fs-4" />,
                   label: "Product List",
-                }
+                },
               ],
             },
             {
@@ -87,11 +108,10 @@ const MainLayout = () => {
               icon: <FaClipboardList className="fs-4" />,
               label: "Orders",
             },
-            
             {
               key: "enquiries",
               icon: <FaClipboardList className="fs-4" />,
-              label: "Enquiries",
+              label: "Inquiries",
             },
           ]}
         />
@@ -112,24 +132,17 @@ const MainLayout = () => {
             }
           )}
           <div className="d-flex gap-4 align-items-center">
-
             <div className="d-flex gap-3 align-items-center dropdown">
-              {/* <div>
-                <img
-                  width={32}
-                  height={32}
-                  src="https://stroyka-admin.html.themeforest.scompiler.ru/variants/ltr/images/customers/customer-4-64x64.jpg"
-                  alt=""
-                />
-              </div> */}
               <div
                 role="button"
                 id="dropdownMenuLink"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                <h5 className="mb-0">Mariam Zarnab</h5>
-                <p className="mb-0">mariamzarnab104@gmail.com</p>
+                <h5 className="mb-0 text-capitalize">
+                  {Adminstate.firstname + " " + Adminstate.lastname}
+                </h5>
+                <p className="mb-0">{Adminstate?.email}</p>
               </div>
               <div className="dropdown-menu" aria-labelledby="dropdownMenuLink">
                 <li>
@@ -179,4 +192,5 @@ const MainLayout = () => {
     </Layout>
   );
 };
+
 export default MainLayout;

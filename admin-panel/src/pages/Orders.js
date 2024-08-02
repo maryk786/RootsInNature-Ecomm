@@ -1,40 +1,27 @@
-import React, { useEffect } from "react";
-import { Table } from "antd";
+import React, { useEffect, useState } from "react";
+import { Table, Button } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { BiEdit } from "react-icons/bi";
 import { AiFillDelete } from "react-icons/ai";
 import { Link } from "react-router-dom";
-import { getOrders } from "../features/auth/authSlice";
+import { getOrders, updateOrder } from "../features/auth/authSlice";
 
+// Define the columns for the Ant Design table
 const columns = [
-  {
-    title: "SNo",
-    dataIndex: "key",
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-  },
-  {
-    title: "Product",
-    dataIndex: "product",
-  },
-  {
-    title: "Amount",
-    dataIndex: "amount",
-  },
-  {
-    title: "Date",
-    dataIndex: "date",
-  },
-  {
-    title: "Action",
-    dataIndex: "action",
-  },
+  { title: "SNo", dataIndex: "key" },
+  { title: "Name", dataIndex: "name" },
+  { title: "Address", dataIndex: "streetAddress" },
+  { title: "Product", dataIndex: "product" },
+  { title: "Amount", dataIndex: "amount" },
+  { title: "Date", dataIndex: "date" },
+  { title: "Status", dataIndex: "status" },
+  { title: "Action", dataIndex: "action" },
 ];
 
 const Orders = () => {
   const dispatch = useDispatch();
+  const [editId, setEditId] = useState(null);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     dispatch(getOrders());
@@ -42,40 +29,71 @@ const Orders = () => {
 
   const orderState = useSelector((state) => state.auth.orders);
 
-  useEffect(() => {
-    if (orderState && orderState.length > 0) {
-      const firstOrderShippingInfo = orderState[0].shippingInfo;
-      const firstName = firstOrderShippingInfo.firstName;
-      console.log("First order's first name:", firstName);
-    } else {
-      console.log("No orders found");
-    }
-  }, [orderState]);
+  const handleEdit = (orderId, currentStatus) => {
+    setEditId(orderId);
+    setStatus(currentStatus);
+  };
 
-  const data1 = orderState.map((order, index) => {
-    const orderItem = order.orderItems[0]; // Assuming you want the first item for this example
-    return {
-      key: index + 1,
-      name: `${order.shippingInfo.firstName} ${order.shippingInfo.lastName}`,
-      product: (
-        <Link to={`/admin/order/${order._id}`}>
-          View Orders
-        </Link>
-      ),
-      amount: orderItem.price, // Accessing the price from orderItems
-      date: new Date(order.createdAt).toLocaleString(),
-      action: (
-        <>
-          <Link to="/" className="fs-3 text-danger">
-            <BiEdit />
-          </Link>
-          <Link className="ms-3 fs-3 text-danger" to="/">
-            <AiFillDelete />
-          </Link>
-        </>
-      ),
-    };
-  });
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const handleSave = (orderId) => {
+    dispatch(updateOrder({ id: orderId, updateData: { orderStatus: status } }));
+    setEditId(null);
+  };
+
+  const data1 = Array.isArray(orderState)
+    ? orderState.map((order, index) => ({
+        key: index + 1,
+        name: `${order?.shippingInfo.firstName} ${order?.shippingInfo.lastName}`,
+        streetAddress: order?.shippingInfo.streetAddress,
+        product: <Link to={`/admin/order/${order?._id}`}>View Order</Link>,
+        amount: order?.totalPayment,
+        date: new Date(order?.createdAt).toLocaleString(),
+        status:
+          editId === order._id ? (
+            <select
+              defaultValue={order?.orderStatus || "Pending"}
+              className="form-control form-select"
+              onChange={handleStatusChange}
+            >
+              <option value="Pending">Pending</option>
+              <option value="Delivered">Delivered</option>
+              {/* Add more options as needed */}
+            </select>
+          ) : (
+            order?.orderStatus
+          ),
+        action: (
+          <>
+            {editId === order._id ? (
+              <Button
+                type="link"
+                onClick={() => handleSave(order._id)}
+                className="fs-3 text-success"
+              >
+                Save
+              </Button>
+            ) : (
+              <Button
+                type="link"
+                onClick={() => handleEdit(order._id, order?.orderStatus)}
+                className="fs-3 text-danger"
+              >
+                <BiEdit />
+              </Button>
+            )}
+            <Link
+              className="ms-3 fs-3 text-danger"
+              to={`/admin/delete-order/${order?._id}`}
+            >
+              <AiFillDelete />
+            </Link>
+          </>
+        ),
+      }))
+    : [];
 
   return (
     <div>

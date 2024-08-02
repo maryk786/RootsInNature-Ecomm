@@ -14,4 +14,5 @@ export const store = configureStore({
     enquiry: enquiryReducer,
     upload: uploadReducer,
   },
+  
 });

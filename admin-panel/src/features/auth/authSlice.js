@@ -1,17 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "./authServices";
+import { toast } from "react-toastify";
 
-const getUserfromLocalStorage = localStorage.getItem("user")
+const getUserFromLocalStorage = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user"))
   : null;
+
 const initialState = {
-  user: getUserfromLocalStorage,
+  user: getUserFromLocalStorage,
   orders: [],
   isError: false,
   isLoading: false,
   isSuccess: false,
   message: "",
 };
+
 export const login = createAsyncThunk(
   "auth/login",
   async (userData, thunkAPI) => {
@@ -33,23 +36,51 @@ export const getOrders = createAsyncThunk(
     }
   }
 );
-export const getOrderByUser = createAsyncThunk(
-  "order/get-order",
+
+export const getOrderByid = createAsyncThunk(
+  "order/getOrderByid",
   async (id, thunkAPI) => {
     try {
-      return await authService.getOrder(id);
+      const response = await authService.getOrderByid(id);
+      return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error);
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getOrderByUserId = createAsyncThunk(
+  "order/getOrderByUserId",
+  async (userId, thunkAPI) => {
+    try {
+      const response = await authService.getOrderByUserId(userId);
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const updateOrder = createAsyncThunk(
+  "orders/updateOrder",
+  async ({ id, updateData }, thunkAPI) => {
+    try {
+      const response = await authService.updateOrder(id, updateData);
+      console.log("Response from updateOrder:", response); // Debugging log
+      return response.updatedOrder; // Return the updated order object directly
+    } catch (error) {
+      console.error("Error in updateOrder:", error);
+      return thunkAPI.rejectWithValue(error.response.data);
     }
   }
 );
 
 export const authSlice = createSlice({
   name: "auth",
-  initialState: initialState,
+  initialState,
   reducers: {},
-  extraReducers: (buildeer) => {
-    buildeer
+  extraReducers: (builder) => {
+    builder
       .addCase(login.pending, (state) => {
         state.isLoading = true;
       })
@@ -82,21 +113,65 @@ export const authSlice = createSlice({
         state.message = action.error;
         state.isLoading = false;
       })
-      .addCase(getOrderByUser.pending, (state) => {
+      .addCase(getOrderByUserId.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getOrderByUser.fulfilled, (state, action) => {
-        state.isError = false;
+      .addCase(getOrderByUserId.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.orderbyuser = action.payload;
-        state.message = "success";
+        state.orders = action.payload;
+        toast.info("Orders fetched successfully!");
       })
-      .addCase(getOrderByUser.rejected, (state, action) => {
-        state.isError = true;
-        state.isSuccess = false;
-        state.message = action.error;
+      .addCase(getOrderByUserId.rejected, (state, action) => {
         state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        toast.error(`Failed to fetch orders: ${action.payload}`);
+      })
+      .addCase(getOrderByid.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getOrderByid.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.orders = action.payload;
+        toast.info("Orders fetched successfully!");
+      })
+      .addCase(getOrderByid.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        toast.error(`Failed to fetch orders: ${action.payload}`);
+      })
+      .addCase(updateOrder.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateOrder.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+
+        console.log("Update Order Fulfilled:", action.payload); // This should now show the order object
+
+        if (action.payload && action.payload._id) {
+          if (Array.isArray(state.orders)) {
+            const index = state.orders.findIndex(
+              (order) => order._id === action.payload._id
+            );
+            if (index !== -1) {
+              state.orders[index] = action.payload;
+            }
+          }
+          toast.success("Order status updated successfully!");
+        } else {
+          console.error("Invalid payload structure", action.payload);
+        }
+      })
+
+      .addCase(updateOrder.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+        toast.error(`Failed to update order: ${action.payload}`);
       });
   },
 });

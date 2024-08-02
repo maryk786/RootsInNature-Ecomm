@@ -6,6 +6,7 @@ const {
   getAllProducts,
   updateProduct,
   search,
+  relatedProduct,
   deleteProduct,
   addToWishlist,
 } = require("../controller/productCtrl");
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, isAdmin, createProduct);
 
+router.get("/:id/related", relatedProduct);
 router.get("/search", search);
 
 router.get("/pagination", getProductbyPage);

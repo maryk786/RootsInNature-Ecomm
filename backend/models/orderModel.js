@@ -72,5 +72,18 @@ var orderSchema = new mongoose.Schema(
   }
 );
 
+// Middleware to decrease product quantity and update stock status
+orderSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    const Product = mongoose.model("Product");
+    for (let item of this.orderItems) {
+      let product = await Product.findById(item.product);
+      product.quantity -= item.quantity;
+      await product.updateStockStatus();
+    }
+  }
+  next();
+});
+
 //Export the model
 module.exports = mongoose.model("Order", orderSchema);

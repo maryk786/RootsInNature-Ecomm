@@ -7,7 +7,7 @@ const BreadCrum = (props) => {
   const home = () => {
     navigate("/");
   };
-  const { title, name} = props;
+  const { title, name, product_name } = props;
   return (
     <div className="py-4 bg-[#d2f1a398] shadow-sm ">
       <div className="container-xxl">
@@ -21,8 +21,17 @@ const BreadCrum = (props) => {
               >
                 Root In Nature - Home &nbsp;
               </div>
-              <FaArrowRight /> &nbsp; &nbsp;{" "}
+              <FaArrowRight /> &nbsp; &nbsp;
               <div className="capitalize text-base font-medium">{name}</div>
+              {product_name && (
+                <>
+                  &nbsp; &nbsp;
+                  <FaArrowRight /> &nbsp; &nbsp;
+                  <h2 className="capitalize text-base font-medium">
+                    {product_name}
+                  </h2>
+                </>
+              )}
             </div>
           </div>
         </div>

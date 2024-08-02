@@ -5,7 +5,7 @@ const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const app = express();
 const dotenv = require("dotenv").config();
 const authRouter = require("./routes/authRoute");
-const productRouter = require("./routes/productRoute");
+const productRouter = require("./routes/productRoute")
 const categoryRouter = require("./routes/prodcategoryRoute");
 const enqRouter = require("./routes/enqRoute");
 const uploadRouter = require("./routes/uploadRoute");
@@ -17,12 +17,14 @@ const cors = require("cors");
 app.use(morgan("dev"));
 
 // Handle cors
-const corsOptions = {
-  origin: "http://localhost:3000",
-  methods: "GET,POST,PUT,DELETE,PATCH,HEAD",
-  credentials: true,
-};
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: "*", // or specify specific origins
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

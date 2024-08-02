@@ -15,18 +15,15 @@ const SingleProduct = () => {
   const [alreadyAdded, setAlreadyAdded] = useState(false);
   const [mainImage, setMainImage] = useState(null);
   const [stockMessage, setStockMessage] = useState("");
-  const [discountedPrice, setDiscountedPrice] = useState(null);
-  const [discountMessage, setDiscountMessage] = useState("");
+
   const navigate = useNavigate();
   const location = useLocation();
   const getId = location.pathname.split("/")[2];
 
   const dispatch = useDispatch();
-  const productState = useSelector((state) => state.product?.product);
-  const userCartState = useSelector((state) => state.auth?.getCart);
-  const relatedProducts = useSelector(
-    (state) => state.product?.relatedProducts
-  );
+  const productState = useSelector((state) => state.product.product);
+  const userCartState = useSelector((state) => state.auth.getCart);
+  const relatedProducts = useSelector((state) => state.product.relatedProducts);
 
   useEffect(() => {
     dispatch(getAProduct(getId));
@@ -65,35 +62,17 @@ const SingleProduct = () => {
     } else {
       setStockMessage("");
     }
-    // Calculate discounted price and set discount message if quantity >= 3
-    if (quantity >= 3) {
-      const discountPercentage = 20;
-      const discountedAmount = productState.price * 0.8;
-      setDiscountedPrice(discountedAmount);
-      setDiscountMessage(
-        `You are getting a ${discountPercentage}% discount for buying ${quantity} products!`
-      );
-    } else {
-      setDiscountedPrice(null);
-      setDiscountMessage("");
-    }
   }, [quantity, productState?.stock, productState]);
 
   const addItemToCart = () => {
     if (quantity > productState?.stock) {
       return;
     }
-
-    const priceToCharge = discountedPrice
-      ? discountedPrice
-      : productState?.price;
-
     dispatch(
       addProToCart({
         productId: productState?._id,
         quantity,
-        // price: productState?.price,
-        price: priceToCharge,
+        price: productState?.price,
       })
     );
   };
@@ -168,7 +147,7 @@ const SingleProduct = () => {
                         <img
                           key={index}
                           src={imageSrc}
-                          className="main-image rounded-md cursor-pointer h-[7rem] w-[7rem] border-1 p-1 border"
+                          className="main-image rounded-md h-[7rem] w-[7rem] border-1 p-1 border"
                           alt="product image"
                           onClick={() => setMainImage(imageSrc)}
                         />
@@ -183,7 +162,7 @@ const SingleProduct = () => {
             <div className="flex justify-between items-center font-semibold">
               {productState?.title && (
                 <h2 className="text-4xl font-semibold pl-4">
-                  {productState?.title}
+                  {productState.title}
                 </h2>
               )}
 
@@ -192,18 +171,8 @@ const SingleProduct = () => {
               </p>
             </div>
 
-            {/* {productState?.price && (
-              <p className="product-data-price text-2xl py-2 pl-4">{`Rs${productState.price}`}</p>
-            )} */}
             {productState?.price && (
-              <p className="product-data-price text-2xl py-2 pl-4">{`Rs ${
-                discountedPrice ? discountedPrice : productState.price
-              }`}</p>
-            )}
-            {discountMessage && (
-              <p className="text-green-600 font-semibold pl-4">
-                {discountMessage}
-              </p>
+              <p className="product-data-price text-2xl py-2 pl-4">{`Rs${productState.price}`}</p>
             )}
             <ul className="list pl-3 py-3">
               {productState?.scientific_name && (
@@ -254,7 +223,6 @@ const SingleProduct = () => {
               {stockMessage && (
                 <p className="text-red-600 font-semibold">{stockMessage}</p>
               )}
-
               {alreadyAdded === false && (
                 <>
                   <input
@@ -263,7 +231,6 @@ const SingleProduct = () => {
                     placeholder="1"
                     min="1"
                     max="4"
-                    disabled={productState?.stock == 0}
                     onChange={(e) => setQuantity(parseInt(e.target.value))}
                     value={quantity}
                   />
@@ -341,7 +308,7 @@ const SingleProduct = () => {
               <div className="grid grid-cols-4 gap-3 ">
                 {relatedProducts?.map((product) => (
                   <ProductCard key={product._id} data={product} />
-                ))}
+          ))}
               </div>
             </div>
           </div>

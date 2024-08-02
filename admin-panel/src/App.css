@@ -42,3 +42,13 @@
   font-family: Roboto !important;
   color: var(--color-828599);
 }
+.login_div {
+  background-image: url("./assets/login_bg.jpg");
+  background-position: center;
+  background-size: cover;
+}
+@media (max-width: 765px) {
+  .form-div {
+    width: 100% !important;
+  }
+}

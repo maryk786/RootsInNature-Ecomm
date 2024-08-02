@@ -2,7 +2,6 @@ const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
 const Order = require("../models/orderModel");
-const uniqid = require("uniqid");
 const mongoose = require("mongoose");
 
 const asyncHandler = require("express-async-handler");
@@ -26,15 +25,9 @@ const createUser = asyncHandler(async (req, res) => {
   const findUser = await User.findOne({ email: email });
 
   if (!findUser) {
-    /**
-     * TODO:if user not found user create a new user
-     */
     const newUser = await User.create(req.body);
     res.json(newUser);
   } else {
-    /**
-     * TODO:if user found then thow an error: User already exists
-     */
     throw new Error("User Already Exists");
   }
 });
@@ -351,9 +344,7 @@ const getWishlist = asyncHandler(async (req, res) => {
 
 const userCart = asyncHandler(async (req, res) => {
   const { productId, quantity, price } = req.body;
-  console.log(req.user);
   const { _id } = req.user;
-  console.log("id", _id);
   validateMongoDbId(_id);
 
   try {
@@ -361,6 +352,12 @@ const userCart = asyncHandler(async (req, res) => {
 
     if (!product) {
       return res.status(404).json({ message: "Product not found", productId });
+    }
+
+    if (product.stock < quantity) {
+      return res
+        .status(400)
+        .json({ message: `Insufficient stock for product: ${product.name}` });
     }
 
     const newCartItem = new Cart({ userId: _id, productId, quantity, price });
@@ -373,34 +370,6 @@ const userCart = asyncHandler(async (req, res) => {
       .json({ message: "Internal server error", error: error.message });
   }
 });
-
-// const userCart = asyncHandler(async (req, res) => {
-//   const { productId, quantity, price } = req.body;
-//   const { _id } = req.user;
-//   validateMongoDbId(_id);
-//   try {
-//     const product = await Product.findById(productId);
-//     if (!product) {
-//       return res.status(404).json({ message: "Product not found" });
-//     }
-
-//     const newCartItem = new Cart({ userId: _id, productId, quantity, price });
-//     await newCartItem.save();
-//     res.status(201).json(newCartItem);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-//   //   let newCart = await new Cart({
-//   //     userId: _id,
-//   //     productId,
-//   //     quantity,
-//   //     price,
-//   //   }).save();
-//   //   res.json(newCart);
-//   // } catch (error) {
-//   //   throw new Error(error);
-//   // }
-// });
 
 const getUserCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -450,6 +419,48 @@ const updateProductQuantity = asyncHandler(async (req, res) => {
     throw new Error("error", error);
   }
 });
+// const updateProductQuantity = asyncHandler(async (req, res) => {
+//   const { _id } = req.user;
+//   const { cartItemId } = req.params;
+//   const { newQuantity } = req.body;
+
+//   validateMongoDbId(_id);
+//   validateMongoDbId(cartItemId);
+
+//   try {
+//     const cartItem = await Cart.findOne({
+//       userId: _id,
+//       _id: cartItemId,
+//     });
+
+//     if (!cartItem) {
+//       res.status(404);
+//       throw new Error("Cart item not found");
+//     }
+
+//     const product = await Product.findById(cartItem.productId);
+
+//     if (!product) {
+//       res.status(404);
+//       throw new Error("Product not found");
+//     }
+
+//     if (newQuantity >= product.stock) {
+//       res.status(400);
+//       throw new Error(
+//         `Requested quantity (${newQuantity}) exceeds available stock (${product.stock})`
+//       );
+//     }
+
+//     cartItem.quantity = newQuantity;
+//     await cartItem.save();
+
+//     res.json(cartItem);
+//   } catch (error) {
+//     res.status(500);
+//     throw new Error("Server error", error);
+//   }
+// });
 
 const removeProductfromCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -468,18 +479,27 @@ const removeProductfromCart = asyncHandler(async (req, res) => {
 });
 
 const createOrder = async (req, res) => {
-  const { user, shippingInfo, paymentMethod, orderItems } = req.body;
+  const { user, shippingInfo, orderItems } = req.body;
 
   if (!user || !shippingInfo || !orderItems) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    // Calculate totalPayment
     let totalPayment = 0;
-    orderItems.forEach((item) => {
+
+    // Check stock availability
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
+
+      if (!product) {
+        return res
+          .status(404)
+          .json({ message: `Product not found: ${item.product}` });
+      }
+
       totalPayment += parseFloat(item.price) * item.quantity;
-    });
+    }
 
     // Add shipping fee to the total payment
     totalPayment += shippingInfo.shippingFee || 99;
@@ -497,12 +517,57 @@ const createOrder = async (req, res) => {
     // Save the order to MongoDB
     await newOrder.save();
 
+    // Reduce stock and increase sold count after order is created
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product);
+      product.stock -= item.quantity;
+      product.sold += item.quantity;
+      await product.updateStockStatus();
+    }
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ message: "Error creating order", error });
   }
 };
+
+// const createOrder = async (req, res) => {
+//   const { user, shippingInfo, paymentMethod, orderItems } = req.body;
+
+//   if (!user || !shippingInfo || !orderItems) {
+//     return res.status(400).json({ message: "Missing required fields" });
+//   }
+
+//   try {
+//     // Calculate totalPayment
+//     let totalPayment = 0;
+//     orderItems.forEach((item) => {
+//       totalPayment += parseFloat(item.price) * item.quantity;
+//     });
+
+//     // Add shipping fee to the total payment
+//     totalPayment += shippingInfo.shippingFee || 99;
+
+//     // Create the order with totalPayment included
+//     const newOrder = new Order({
+//       user,
+//       shippingInfo,
+//       paymentMethod: "COD",
+//       orderItems,
+//       totalPayment: totalPayment.toFixed(2), // Ensure two decimal points
+//       orderStatus: "Pending",
+//     });
+
+//     // Save the order to MongoDB
+//     await newOrder.save();
+
+//     res.status(201).json(newOrder);
+//   } catch (error) {
+//     console.error("Error creating order:", error);
+//     res.status(500).json({ message: "Error creating order", error });
+//   }
+// };
 
 const getAllOrders = asyncHandler(async (req, res) => {
   try {
@@ -514,6 +579,22 @@ const getAllOrders = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Error fetching orders", error });
   }
 });
+
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("user", "email")
+      .populate("orderItems.product");
+    if (!order) {
+      res.status(404).json({ message: "Order not found" });
+      return;
+    }
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getOrderByUserId = async (req, res) => {
   const { id } = req.params;
   console.log(id);
@@ -611,6 +692,7 @@ module.exports = {
   getUserCart,
   emptyCart,
   createOrder,
+  getOrderById,
   updateOrder,
   getAllOrders,
   updateProductQuantity,

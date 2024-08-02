@@ -73,7 +73,7 @@ const Wishlist = () => {
                   >
                     <img
                       className="w-full h-[180px]"
-                      src={item?.images}
+                      src={item?.imageList?.[0]}
                       alt={item?.title}
                     />
                   </Link>
@@ -94,7 +94,7 @@ const Wishlist = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <h1 className="font-semibold text-[1.2rem] mb-2">
-                        {item?.price}
+                        Rs {item?.price}
                       </h1>
                       <div
                         className="text-[1.4rem] rounded-lg p-1 border-green-900 border-2 hover:text-white hover:bg-green-900 cursor-pointer"

@@ -22,7 +22,7 @@ const Navbar = () => {
     { to: "/product-categories/fruit-plants", text: "Fruit Plants" },
     { to: "/product-categories/fertilizer", text: "Fertilizer" },
     { to: "/product-categories/equipments", text: "Equipments" },
-    { to: "/product-categories/seeds", text: "Seeds" },
+    { to: "/product-categories/seed", text: "Seeds" },
     { to: "/contact", text: "Contact" },
     { to: "/all-orders", text: "My Orders" },
   ].filter((item) =>

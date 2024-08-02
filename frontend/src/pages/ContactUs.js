@@ -48,9 +48,9 @@ const ContactUs = () => {
       <BreadCrum title="Contact Us" name="Contacts" />
       <div className="container">
         <div className="row justify-center">
-          <div className="col-8 ">
+          <div className="col-8 contact-col">
             <div className="pt-12 pb-5">
-              <h1 className="text-center text-3xl ">
+              <h1 className="text-center text-3xl contact-head ">
                 Got anything to say? Let us hear it!
               </h1>
             </div>

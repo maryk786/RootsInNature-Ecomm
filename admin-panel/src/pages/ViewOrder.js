@@ -1,10 +1,13 @@
 import React, { useEffect } from "react";
 import { Table } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { BiEdit } from "react-icons/bi";
-import { AiFillDelete } from "react-icons/ai";
-import { Link, useLocation } from "react-router-dom";
-import { getOrderByUser, getOrders } from "../features/auth/authSlice";
+import { useParams } from "react-router-dom";
+import { getOrderByid } from "../features/auth/authSlice";
+
+import { useNavigate } from "react-router-dom";
+
+import { BiArrowBack } from "react-icons/bi";
+
 const columns = [
   {
     title: "SNo",
@@ -15,57 +18,50 @@ const columns = [
     dataIndex: "name",
   },
   {
-    title: "Count",
-    dataIndex: "count",
+    title: "Quantity",
+    dataIndex: "quantity",
   },
   {
     title: "Amount",
     dataIndex: "amount",
   },
-  {
-    title: "Date",
-    dataIndex: "date",
-  },
-
-  {
-    title: "Action",
-    dataIndex: "action",
-  },
 ];
 
 const ViewOrder = () => {
-  const location = useLocation();
-  console.log(location)
-  const userId = location.pathname.split("/")[3];
+  const navigate = useNavigate();
+  const { id } = useParams();
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(getOrderByUser(userId));
-  }, []);
-  const orderState = useSelector((state) => state.auth.orderbyuser[0].products);
+  const orderState = useSelector((state) => state.auth.orders);
   console.log(orderState);
-  const data1 = [];
-  for (let i = 0; i < orderState.length; i++) {
-    data1.push({
-      key: i + 1,
-      name: orderState[i].product.title,
-      count: orderState[i].count,
-      amount: orderState[i].product.price,
-      date: orderState[i].product.createdAt,
-      action: (
-        <>
-          <Link className=" fs-3 text-danger">
-            <BiEdit />
-          </Link>
-          <Link className="ms-3 fs-3 text-danger" to="/">
-            <AiFillDelete />
-          </Link>
-        </>
-      ),
-    });
-  }
+
+  useEffect(() => {
+    if (id) {
+      dispatch(getOrderByid(id));
+    }
+  }, [dispatch, id]);
+  const goBack = () => {
+    navigate(-1);
+  };
+  const data1 =
+    orderState?.orderItems?.map((item, index) => ({
+      key: index + 1,
+      name: item.product?.title,
+      quantity: item.quantity,
+      amount: item.price * item.quantity,
+    })) || [];
+
   return (
     <div>
-      <h3 className="mb-4 title">View Order</h3>
+      <div className="d-flex justify-content-between align-items-center">
+        <h3 className="mb-4 title">View Order</h3>
+        <button
+          className="bg-transpatent border-0 fs-6 mb-0 d-flex align-items-center gap-1"
+          onClick={goBack}
+        >
+          <BiArrowBack className="fs-5" /> Go Back
+        </button>
+      </div>
+
       <div>
         <Table columns={columns} dataSource={data1} />
       </div>

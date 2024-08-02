@@ -6,11 +6,8 @@ import { format } from "date-fns";
 
 const OrdersPage = () => {
   const dispatch = useDispatch();
-  const orders = useSelector((state) => state.auth?.order);
+  const orders = useSelector((state) => state.auth?.order) || [];
   const userId = useSelector((state) => state.auth?.user?._id);
-
-  console.log("Orders:", orders);
-  console.log("User ID:", userId);
 
   useEffect(() => {
     if (userId) {
@@ -18,11 +15,10 @@ const OrdersPage = () => {
     }
   }, [dispatch, userId]);
 
-  if (!orders) {
+  if (!Array.isArray(orders)) {
     return <div>Loading...</div>;
   }
 
-  const isOrdersArray = Array.isArray(orders);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return format(date, "dd MMMM yyyy 'at' h:mm a");
@@ -33,21 +29,15 @@ const OrdersPage = () => {
       <BreadCrum title="My Orders" name="My Orders" />
       <div className="container my-8 p-4 bg-white shadow-md">
         <div className="row justify-center">
-          <div className="flex justify-center gap-3 flex-wrap">
-            {!isOrdersArray ? (
+          <div className="order-card flex justify-center gap-3 flex-wrap">
+            {orders.length === 0 ? (
               <div>No orders found.</div>
             ) : (
               orders.map((order) => (
                 <div
-                className="col-4"
+                  className="order-card-col border p-[20px] mb-[10px]"
                   key={order?._id}
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "10px",
-                    marginBottom: "10px",
-                  }}
                 >
-                 
                   <div>
                     {order?.orderItems?.map((item, index) => (
                       <div
@@ -56,7 +46,7 @@ const OrdersPage = () => {
                       >
                         <div className="flex gap-3">
                           <img
-                            src={item.product?.images}
+                            src={item.product?.imageList?.[0]}
                             className="w-14 h-14"
                             alt={item.title}
                           />
@@ -75,15 +65,30 @@ const OrdersPage = () => {
                       </div>
                     ))}
                   </div>
-                  <p>Order Status: {order?.orderStatus}</p>
-                  <p>Shipping Fee: 99</p>
-                  <p>Payment Method: {order?.paymentMethod}</p>
-                  <p>Total Amount: Rs {order?.totalPayment}</p>
-                  <div className="text-end">
-                    <p>Ordered Date: {formatDate(order?.createdAt)}</p>
-                  <p>Order ID: {order?._id}</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="font-semibold">Order Status</div>
+                      <div>{order?.orderStatus}</div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="font-semibold">Shipping Fee </div>
+                      <div>99</div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="font-semibold">Payment Method </div>
+                      <div>{order?.paymentMethod}</div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="font-semibold">Total Amount </div>
+                      <div className="font-semibold">
+                        Rs {order?.totalPayment}
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="font-semibold">Ordered Date</div>
+                      <div>{formatDate(order?.createdAt)}</div>
+                    </div>
                   </div>
-                 
                 </div>
               ))
             )}

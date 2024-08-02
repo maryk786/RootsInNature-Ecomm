@@ -9,7 +9,9 @@ const CustomCard = ({ name, image, path }) => (
       <Card.Img variant="top" src={image} />
       <Card.Body>
         <Card.Title className="text-sm text-center font-bold cursor-pointer">
-          <Link to={path} className="text-black">{name}</Link>
+          <Link to={path} className="text-black">
+            {name}
+          </Link>
         </Card.Title>
       </Card.Body>
     </Card>

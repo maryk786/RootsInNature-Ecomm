@@ -13,20 +13,46 @@ const getOrders = async () => {
 
   return response.data;
 };
-const getOrder = async (id) => {
-  const response = await axios.post(
-    `${base_url}user/getorderbyuser/${id}`,
-    "",
-    config
-  );
 
-  return response.data;
+export const getOrderByid = async (id) => {
+  try {
+    const response = await axios.get(`${base_url}user/orderbyId/${id}`, config);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message);
+  }
+};
+
+export const getOrderByUserId = async (userId) => {
+  try {
+    const response = await axios.get(
+      `${base_url}user/getorderbyUser/${userId}`,
+      config
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message);
+  }
+};
+export const updateOrder = async (id, updateData) => {
+  try {
+    const response = await axios.put(
+      `${base_url}user/order/update-order/${id}`,
+      updateData,
+      config
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message);
+  }
 };
 
 const authService = {
   login,
   getOrders,
-  getOrder,
+  getOrderByUserId,
+  getOrderByid,
+  updateOrder,
 };
 
 export default authService;
